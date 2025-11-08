@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Login Administrativo</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="../img/logo_bonamigo.png">
+</head>
+<body class="admin-login-body">
+<div class="login-container">
+  <div class="login-box">
+    <div class="login-header">
+      <img src="../img/logo.png" alt="Bonamigo" class="login-logo">
+      <h1>Panel Administrativo</h1>
+      <p>Ingresá tus credenciales para continuar</p>
+    </div>
+    
+    <form id="login-form" class="login-form">
+      <div class="form-group">
+        <label for="usuario">Usuario</label>
+        <input type="text" id="usuario" name="usuario" required autocomplete="username">
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+      </div>
+      
+      <div id="login-error" class="error-message" style="display: none;"></div>
+      
+      <button type="submit" class="btn-login">Iniciar Sesión</button>
+    </form>
+    
+    <div class="login-footer">
+      <a href="../index.html">← Volver al sitio</a>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+// Función helper para API
+const apiFetch = window.apiRequest || fetch;
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const usuario = document.getElementById('usuario').value;
+  const password = document.getElementById('password').value;
+  const errorDiv = document.getElementById('login-error');
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  
+  errorDiv.style.display = 'none';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Iniciando sesión...';
+  
+  try {
+    const response = await apiFetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ usuario, password })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok && data.success) {
+      window.location.href = 'dashboard.html';
+    } else {
+      errorDiv.textContent = data.error || 'Error al iniciar sesión';
+      errorDiv.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Iniciar Sesión';
+    }
+  } catch (error) {
+    errorDiv.textContent = 'Error de conexión. Verificá que el servidor esté corriendo.';
+    errorDiv.style.display = 'block';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Iniciar Sesión';
+  }
+});
+
+// NO redirigir automáticamente - siempre pedir login
+// Esto asegura que siempre se pida iniciar sesión
+</script>
+</body>
+</html>
+
+

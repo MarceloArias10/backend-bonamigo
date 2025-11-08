@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Estadísticas</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="../img/logo_bonamigo.png">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../img/logo.png" alt="Bonamigo" class="sidebar-logo">
+      <h2 id="sidebar-user-name">Cargando...</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+      <a href="productos.html" class="nav-item"><span class="nav-icon">📦</span><span>Productos</span></a>
+      <a href="categorias.html" class="nav-item"><span class="nav-icon">🏷️</span><span>Categorías</span></a>
+      <a href="ventas.html" class="nav-item"><span class="nav-icon">💰</span><span>Ventas</span></a>
+      <a href="compras.html" class="nav-item"><span class="nav-icon">🛒</span><span>Compras</span></a>
+      <a href="estadisticas.html" class="nav-item active"><span class="nav-icon">📈</span><span>Estadísticas</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+      <a href="../index.html" class="link-site">← Ver sitio</a>
+    </div>
+  </aside>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <h1>Estadísticas</h1>
+      <div class="header-user">
+        <span id="user-name">Admin</span>
+      </div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="dashboard-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-info">
+            <h3 id="stat-total-productos">0</h3>
+            <p>Total Productos</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-info">
+            <h3 id="stat-productos-destacados">0</h3>
+            <p>Productos Destacados</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <h3 id="stat-ventas-mes">$0</h3>
+            <p>Ventas del Mes</p>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">🛒</div>
+          <div class="stat-info">
+            <h3 id="stat-compras-mes">$0</h3>
+            <p>Compras del Mes</p>
+          </div>
+        </div>
+        
+        <div class="stat-card warning">
+          <div class="stat-icon">⚠️</div>
+          <div class="stat-info">
+            <h3 id="stat-stock-bajo">0</h3>
+            <p>Productos con Stock Bajo</p>
+          </div>
+        </div>
+        
+        <div class="stat-card error">
+          <div class="stat-icon">❌</div>
+          <div class="stat-info">
+            <h3 id="stat-sin-stock">0</h3>
+            <p>Productos Sin Stock</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="dashboard-alerts">
+        <h2>Alertas de Stock</h2>
+        <div id="alertas-container" class="alertas-list"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+// Función helper para API
+const apiFetch = window.apiRequest || fetch;
+
+// Verificar autenticación - siempre pedir login
+apiFetch('/api/session')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.authenticated) {
+      apiFetch('/api/logout', { method: 'POST' }).finally(() => {
+        window.location.href = 'login.html';
+      });
+    } else {
+      document.getElementById('user-name').textContent = data.usuario;
+      const sidebarUserName = document.getElementById('sidebar-user-name');
+      if (sidebarUserName) {
+        sidebarUserName.textContent = data.usuario;
+      }
+      cargarEstadisticas();
+    }
+  })
+  .catch(() => {
+    window.location.href = 'login.html';
+  });
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await apiFetch('/api/logout', { method: 'POST' });
+  window.location.href = 'login.html';
+});
+
+// Cargar estadísticas
+async function cargarEstadisticas() {
+  try {
+    const response = await apiFetch('/api/estadisticas');
+    const stats = await response.json();
+    
+    document.getElementById('stat-total-productos').textContent = stats.totalProductos || 0;
+    document.getElementById('stat-productos-destacados').textContent = stats.productosDestacados || 0;
+    document.getElementById('stat-ventas-mes').textContent = '$' + (stats.ventasMes || 0).toLocaleString('es-AR');
+    document.getElementById('stat-compras-mes').textContent = '$' + (stats.comprasMes || 0).toLocaleString('es-AR');
+    document.getElementById('stat-stock-bajo').textContent = stats.productosStockBajo || 0;
+    document.getElementById('stat-sin-stock').textContent = stats.productosSinStock || 0;
+    
+    // Mostrar alertas
+    const alertasContainer = document.getElementById('alertas-container');
+    alertasContainer.innerHTML = '';
+    
+    if (stats.alertasSinStock && stats.alertasSinStock.length > 0) {
+      const sinStockDiv = document.createElement('div');
+      sinStockDiv.className = 'alerta-item error';
+      sinStockDiv.innerHTML = `
+        <h4>Sin Stock (${stats.alertasSinStock.length})</h4>
+        <ul>
+          ${stats.alertasSinStock.map(p => `<li>${p.nombre}</li>`).join('')}
+        </ul>
+      `;
+      alertasContainer.appendChild(sinStockDiv);
+    }
+    
+    if (stats.alertasStockBajo && stats.alertasStockBajo.length > 0) {
+      const stockBajoDiv = document.createElement('div');
+      stockBajoDiv.className = 'alerta-item warning';
+      stockBajoDiv.innerHTML = `
+        <h4>Stock Bajo (${stats.alertasStockBajo.length})</h4>
+        <ul>
+          ${stats.alertasStockBajo.map(p => `<li>${p.nombre} - Stock: ${p.stock}</li>`).join('')}
+        </ul>
+      `;
+      alertasContainer.appendChild(stockBajoDiv);
+    }
+    
+    if (alertasContainer.children.length === 0) {
+      alertasContainer.innerHTML = '<p class="no-alertas">No hay alertas de stock</p>';
+    }
+  } catch (error) {
+    console.error('Error al cargar estadísticas:', error);
+  }
+}
+
+// Actualizar cada 30 segundos
+setInterval(cargarEstadisticas, 30000);
+
+// Toggle sidebar en móviles
+function toggleSidebar() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('show');
+  overlay.classList.toggle('show');
+}
+</script>
+</body>
+</html>
+
+

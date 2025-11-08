@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Ventas</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="../img/logo_bonamigo.png">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../img/logo.png" alt="Bonamigo" class="sidebar-logo">
+      <h2 id="sidebar-user-name">Cargando...</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+      <a href="productos.html" class="nav-item"><span class="nav-icon">📦</span><span>Productos</span></a>
+      <a href="categorias.html" class="nav-item"><span class="nav-icon">🏷️</span><span>Categorías</span></a>
+      <a href="ventas.html" class="nav-item active"><span class="nav-icon">💰</span><span>Ventas</span></a>
+      <a href="compras.html" class="nav-item"><span class="nav-icon">🛒</span><span>Compras</span></a>
+      <a href="estadisticas.html" class="nav-item"><span class="nav-icon">📈</span><span>Estadísticas</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+      <a href="../index.html" class="link-site">← Ver sitio</a>
+    </div>
+  </aside>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <h1>Ventas</h1>
+      <div class="header-user">
+        <span id="user-name">Admin</span>
+      </div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="table-container">
+        <div class="table-header">
+          <h2>Registro de Ventas</h2>
+          <button class="btn-primary" onclick="abrirModalVenta()">+ Nueva Venta</button>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Total</th>
+              <th>Productos</th>
+              <th>Notas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="ventas-table">
+            <tr><td colspan="6" style="text-align: center; padding: 40px;">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Venta -->
+<div class="modal-overlay" id="modal-venta">
+  <div class="modal-box" style="max-width: 600px;">
+    <button class="modal-close" onclick="cerrarModalVenta()">&times;</button>
+    <h2>Nueva Venta</h2>
+    
+    <form id="form-venta">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="venta-fecha">Fecha *</label>
+          <input type="datetime-local" id="venta-fecha" required>
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="venta-total">Monto Total *</label>
+          <input type="number" id="venta-total" step="0.01" min="0" required placeholder="0.00">
+        </div>
+        
+        <div class="form-group">
+          <label for="venta-cantidad">Cantidad de Productos</label>
+          <input type="number" id="venta-cantidad" min="1" value="1" placeholder="1">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="venta-productos">Productos Vendidos</label>
+        <textarea id="venta-productos" rows="4" placeholder="Ej: 2x Remera Azul, 1x Pantalón Negro..."></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="venta-notas">Notas Adicionales</label>
+        <textarea id="venta-notas" rows="3" placeholder="Información adicional sobre la venta..."></textarea>
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn-primary">Guardar Venta</button>
+        <button type="button" class="btn-secondary" onclick="cerrarModalVenta()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+// Función helper para API
+const apiFetch = window.apiRequest || fetch;
+
+// Verificar autenticación - siempre pedir login
+apiFetch('/api/session')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.authenticated) {
+      apiFetch('/api/logout', { method: 'POST' }).finally(() => {
+        window.location.href = 'login.html';
+      });
+    } else {
+      document.getElementById('user-name').textContent = data.usuario;
+      const sidebarUserName = document.getElementById('sidebar-user-name');
+      if (sidebarUserName) {
+        sidebarUserName.textContent = data.usuario;
+      }
+      cargarVentas();
+    }
+  })
+  .catch(() => {
+    window.location.href = 'login.html';
+  });
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await apiFetch('/api/logout', { method: 'POST' });
+  window.location.href = 'login.html';
+});
+
+// Cargar ventas
+async function cargarVentas() {
+  try {
+    const response = await apiFetch('/api/ventas');
+    const ventas = await response.json();
+    const tbody = document.getElementById('ventas-table');
+    
+    if (ventas.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No hay ventas registradas</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = ventas.map(v => {
+      const fecha = new Date(v.fecha);
+      return `
+        <tr>
+          <td><strong>#${v.id}</strong></td>
+          <td>${fecha.toLocaleString('es-AR')}</td>
+          <td><strong>$${parseFloat(v.total).toLocaleString('es-AR')}</strong></td>
+          <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${v.productos || ''}">${v.productos || '-'}</td>
+          <td>${v.notas || '-'}</td>
+          <td>
+            <button class="btn-danger" onclick="eliminarVenta(${v.id})">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error al cargar ventas:', error);
+  }
+}
+
+// Abrir modal
+function abrirModalVenta() {
+  document.getElementById('venta-fecha').value = new Date().toISOString().slice(0, 16);
+  document.getElementById('venta-total').value = '';
+  document.getElementById('venta-cantidad').value = '1';
+  document.getElementById('venta-productos').value = '';
+  document.getElementById('venta-notas').value = '';
+  document.getElementById('modal-venta').classList.add('show');
+}
+
+// Cerrar modal
+function cerrarModalVenta() {
+  document.getElementById('modal-venta').classList.remove('show');
+}
+
+// Eliminar venta
+async function eliminarVenta(id) {
+  if (!confirm('¿Estás seguro de eliminar esta venta? Esta acción no se puede deshacer.')) return;
+  
+  try {
+    const response = await apiFetch(`/api/ventas/${id}`, { method: 'DELETE' });
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Venta eliminada exitosamente');
+      cargarVentas();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  } catch (error) {
+    alert('Error al eliminar venta: ' + error.message);
+  }
+}
+
+// Guardar venta
+document.getElementById('form-venta').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const total = parseFloat(document.getElementById('venta-total').value);
+  const cantidad = parseInt(document.getElementById('venta-cantidad').value) || 1;
+  const productos = document.getElementById('venta-productos').value;
+  const notas = document.getElementById('venta-notas').value;
+  const fecha = new Date(document.getElementById('venta-fecha').value).toISOString();
+  
+  if (!total || total <= 0) {
+    alert('El monto total debe ser mayor a 0');
+    return;
+  }
+  
+  const data = {
+    fecha: fecha,
+    total: total,
+    cantidad: cantidad,
+    productos: productos,
+    notas: notas
+  };
+  
+  try {
+    const response = await apiFetch('/api/ventas', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      alert('Venta registrada exitosamente');
+      cerrarModalVenta();
+      cargarVentas();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (error) {
+    alert('Error al guardar venta: ' + error.message);
+  }
+});
+
+// Toggle sidebar en móviles
+function toggleSidebar() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('show');
+  overlay.classList.toggle('show');
+}
+</script>
+</body>
+</html>
+
+

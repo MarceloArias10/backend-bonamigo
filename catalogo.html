@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Catálogo</title>
+<link rel="stylesheet" href="css/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="img/logo_bonamigo.png">
+</head>
+<body class="fade-in">
+
+<header>
+  <div class="header-container">
+    <div class="logo">
+      <a href="#" id="logo-admin-link" onclick="return false;">
+        <img src="img/logo.png" alt="Bonamigo - Productos únicos y originales">
+      </a>
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html" class="active">Catálogo</a></li>
+        <li><a href="sobre.html">Sobre Nosotros</a></li>
+        <li><a href="contacto.html">Contacto</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <div id="cart-icon" title="Ver carrito">
+        <span id="cart-count">0</span>
+      </div>
+      <div class="hamburger" id="hamburger-menu">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="catalogo">
+  <!-- Sidebar filtros -->
+  <aside class="sidebar-filtros">
+    <h3>Filtros</h3>
+
+    <!-- Categorías -->
+    <div class="grupo-filtro">
+      <button class="filtro-titulo" data-toggle="categorias">Categorías </button>
+      <div class="filtro-contenido" id="categorias">
+        <button class="active" data-categoria="todos">Todas</button>
+        <button data-categoria="accesorios">Accesorios</button>
+        <button data-categoria="Camping">Camping</button>
+        <button data-categoria="Generador">Generadores</button>
+        <button data-categoria="electro">Electrodomesticos</button>
+        <button data-categoria="bici">BICI</button>
+      </div>
+    </div>
+
+    <!-- Disponibilidad -->
+    <div class="grupo-filtro">
+      <button class="filtro-titulo" data-toggle="disponibilidad">Disponibilidad </button>
+      <div class="filtro-contenido" id="disponibilidad">
+        <button class="active" data-disponibilidad="todos">Todos</button>
+        <button data-disponibilidad="disponible">Disponibles</button>
+        <button data-disponibilidad="agotado">Agotados</button>
+      </div>
+    </div>
+
+    <!-- Precio -->
+    <div class="grupo-filtro">
+      <h4>Rango de Precio</h4>
+      <div class="filtro-precio">
+        <label>
+          <span>Desde:</span>
+          <input type="number" id="precio-min" value="0" min="0" step="100" placeholder="0">
+        </label>
+        <label>
+          <span>Hasta:</span>
+          <input type="number" id="precio-max" value="1000000" min="0" step="100" placeholder="1000000">
+        </label>
+      </div>
+    </div>
+  </aside>
+
+  <div class="productos" id="productos"></div>
+</section>
+
+<!-- Modal producto -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div class="modal-body">
+
+      <!-- Carrusel de imágenes -->
+      <div class="modal-img-container">
+        <div class="carousel-images"></div>
+        <button class="prev">&#10094;</button>
+        <button class="next">&#10095;</button>
+      </div>
+
+      <div class="modal-info">
+        <h2 id="modal-title"></h2>
+        <p id="modal-desc"></p>
+        <p id="modal-price"></p>
+
+        <!-- Colores dinámicos por producto -->
+        <div class="selector-color" id="color-producto">
+          <!-- JS agregará los botones de colores aquí -->
+        </div>
+
+        <div class="selector-cantidad">
+          <label for="cantidad-producto">Cantidad:</label>
+          <input type="number" id="cantidad-producto" value="1" min="1">
+        </div>
+
+        <button id="add-to-cart">Agregar al carrito</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Carrito lateral -->
+<div id="carrito">
+  <div class="carrito-header">
+    <h3>Tu carrito</h3>
+    <button class="carrito-close" id="carrito-close">&times;</button>
+  </div>
+  <div class="carrito-body" id="cart-items">
+    <!-- Items del carrito se insertan aqui -->
+  </div>
+  <div class="carrito-footer">
+    <div class="carrito-total">
+      <span class="total-label">Total:</span>
+      <span class="total-amount">$<span id="cart-total">0</span></span>
+    </div>
+    <button id="checkout" class="checkout-btn">Contactenos</button>
+  </div>
+</div>
+
+<!-- Botones flotantes -->
+<div class="contact-float">
+  <a href="https://wa.me/5491123456789?text=Hola!%20Quiero%20hacer%20una%20consulta%20sobre%20Bonamigo." 
+     class="float-btn whatsapp" target="_blank" rel="noopener noreferrer">
+    <img src="img/logo-wp.png" alt="WhatsApp">
+    <span class="tooltip">Chateá con nosotros</span>
+  </a>
+  <a href="https://www.instagram.com/bonamigo____/" 
+     class="float-btn instagram" target="_blank" rel="noopener noreferrer">
+    <img src="img/logo-instagram.png" alt="Instagram">
+    <span class="tooltip">Síguenos en Instagram</span>
+  </a>
+</div>
+<footer class="footer">
+  <p>&copy; <span id="year"></span> Bonamigo - Todos los derechos reservados.</p>
+</footer>
+<script src="js/config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>

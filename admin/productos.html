@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Productos</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="../img/logo_bonamigo.png">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../img/logo.png" alt="Bonamigo" class="sidebar-logo">
+      <h2 id="sidebar-user-name">Cargando...</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item" data-page="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+      <a href="productos.html" class="nav-item active" data-page="productos"><span class="nav-icon">📦</span><span>Productos</span></a>
+      <a href="categorias.html" class="nav-item" data-page="categorias"><span class="nav-icon">🏷️</span><span>Categorías</span></a>
+      <a href="ventas.html" class="nav-item" data-page="ventas"><span class="nav-icon">💰</span><span>Ventas</span></a>
+      <a href="compras.html" class="nav-item" data-page="compras"><span class="nav-icon">🛒</span><span>Compras</span></a>
+      <a href="estadisticas.html" class="nav-item" data-page="estadisticas"><span class="nav-icon">📈</span><span>Estadísticas</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+      <a href="../index.html" class="link-site">← Ver sitio</a>
+    </div>
+  </aside>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <h1>Productos</h1>
+      <div class="header-user">
+        <span id="user-name">Admin</span>
+      </div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="table-container">
+        <div class="table-header">
+          <h2>Lista de Productos</h2>
+          <button class="btn-primary" onclick="abrirModalProducto()">+ Nuevo Producto</button>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Destacado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="productos-table">
+            <tr><td colspan="7" style="text-align: center; padding: 40px;">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Producto -->
+<div class="modal-overlay" id="modal-producto">
+  <div class="modal-box">
+    <button class="modal-close" onclick="cerrarModalProducto()">&times;</button>
+    <h2 id="modal-producto-titulo">Nuevo Producto</h2>
+    
+    <form id="form-producto" enctype="multipart/form-data">
+      <input type="hidden" id="producto-id">
+      
+      <div class="form-group">
+        <label for="producto-nombre">Nombre *</label>
+        <input type="text" id="producto-nombre" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="producto-descripcion">Descripción</label>
+        <textarea id="producto-descripcion"></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label for="producto-precio">Precio *</label>
+          <input type="number" id="producto-precio" step="0.01" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="producto-categoria">Categoría</label>
+          <select id="producto-categoria">
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="producto-stock">Stock</label>
+          <input type="number" id="producto-stock" value="0" min="0">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="producto-destacado">
+            <span>Producto Destacado</span>
+          </label>
+        </div>
+        
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="producto-disponible" checked>
+            <span>Disponible</span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Colores Disponibles</label>
+        <div class="colores-container" id="colores-container"></div>
+        <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+          <select id="color-select" style="flex: 1; min-width: 150px;">
+            <option value="">Agregar color predefinido...</option>
+            <option value="blanco">Blanco</option>
+            <option value="negro">Negro</option>
+            <option value="azul">Azul</option>
+            <option value="verde">Verde</option>
+            <option value="amarillo">Amarillo</option>
+            <option value="gris">Gris</option>
+            <option value="rosa">Rosa</option>
+            <option value="violeta">Violeta</option>
+            <option value="rojo">Rojo</option>
+            <option value="plateado">Plateado</option>
+            <option value="naranja">Naranja</option>
+            <option value="morado">Morado</option>
+            <option value="turquesa">Turquesa</option>
+            <option value="beige">Beige</option>
+            <option value="marrón">Marrón</option>
+          </select>
+          <input type="text" id="color-custom" placeholder="O escribir color personalizado..." style="flex: 1; min-width: 150px;" onkeypress="if(event.key === 'Enter') agregarColor()">
+          <button type="button" class="btn-secondary" onclick="agregarColor()">Agregar Color</button>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Imágenes</label>
+        <input type="file" id="producto-imagenes" multiple accept="image/*">
+        <div class="imagenes-preview" id="imagenes-preview"></div>
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn-primary">Guardar</button>
+        <button type="button" class="btn-secondary" onclick="cerrarModalProducto()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/admin.js"></script>
+<script>
+// Función helper para API
+const apiFetch = window.apiRequest || fetch;
+
+let categorias = [];
+let coloresSeleccionados = [];
+
+// Verificar autenticación - siempre pedir login
+apiFetch('/api/session')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.authenticated) {
+      apiFetch('/api/logout', { method: 'POST' }).finally(() => {
+        window.location.href = 'login.html';
+      });
+    } else {
+      document.getElementById('user-name').textContent = data.usuario;
+      const sidebarUserName = document.getElementById('sidebar-user-name');
+      if (sidebarUserName) {
+        sidebarUserName.textContent = data.usuario;
+      }
+      cargarCategorias();
+      cargarProductos();
+    }
+  })
+  .catch(() => {
+    window.location.href = 'login.html';
+  });
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await apiFetch('/api/logout', { method: 'POST' });
+  window.location.href = 'login.html';
+});
+
+// Cargar categorías
+async function cargarCategorias() {
+  try {
+    const response = await apiFetch('/api/categorias');
+    categorias = await response.json();
+    const select = document.getElementById('producto-categoria');
+    select.innerHTML = '<option value="">Seleccionar...</option>';
+    categorias.forEach(cat => {
+      const option = document.createElement('option');
+      option.value = cat.id;
+      option.textContent = cat.nombre;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    console.error('Error al cargar categorías:', error);
+  }
+}
+
+// Cargar productos
+async function cargarProductos() {
+  try {
+    const response = await apiFetch('/api/productos');
+    const productos = await response.json();
+    const tbody = document.getElementById('productos-table');
+    
+    if (productos.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No hay productos</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = productos.map(p => `
+      <tr>
+        <td><strong>#${p.id}</strong></td>
+        <td><strong>${p.nombre}</strong></td>
+        <td>${p.categoria_nombre || '<span style="color: #999;">Sin categoría</span>'}</td>
+        <td><strong>$${parseFloat(p.precio).toLocaleString('es-AR')}</strong></td>
+        <td>
+          <span style="padding: 4px 8px; border-radius: 4px; background: ${p.stock > 5 ? '#d1fae5' : p.stock > 0 ? '#fef3c7' : '#fee2e2'}; color: ${p.stock > 5 ? '#065f46' : p.stock > 0 ? '#92400e' : '#991b1b'};">
+            ${p.stock || 0}
+          </span>
+        </td>
+        <td>${p.destacado ? '<span style="color: #f59e0b; font-size: 18px;">⭐</span>' : '<span style="color: #999;">-</span>'}</td>
+        <td style="white-space: nowrap;">
+          <button class="btn-secondary" onclick="editarProducto(${p.id})" style="margin-right: 5px;">✏️ Editar</button>
+          <button class="btn-danger" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  }
+}
+
+// Abrir modal producto
+function abrirModalProducto() {
+  document.getElementById('modal-producto-titulo').textContent = 'Nuevo Producto';
+  document.getElementById('form-producto').reset();
+  document.getElementById('producto-id').value = '';
+  coloresSeleccionados = [];
+  document.getElementById('colores-container').innerHTML = '';
+  document.getElementById('imagenes-preview').innerHTML = '';
+  const customInput = document.getElementById('color-custom');
+  if (customInput) customInput.value = '';
+  const colorSelect = document.getElementById('color-select');
+  if (colorSelect) colorSelect.value = '';
+  document.getElementById('modal-producto').classList.add('show');
+}
+
+// Cerrar modal
+function cerrarModalProducto() {
+  document.getElementById('modal-producto').classList.remove('show');
+}
+
+// Agregar color
+function agregarColor() {
+  const select = document.getElementById('color-select');
+  const customInput = document.getElementById('color-custom');
+  
+  // Priorizar color personalizado si hay texto
+  let color = customInput.value.trim().toLowerCase();
+  
+  // Si no hay color personalizado, usar el del select
+  if (!color) {
+    color = select.value;
+  }
+  
+  if (!color || coloresSeleccionados.includes(color)) {
+    if (!color) {
+      alert('Por favor, selecciona un color o escribe uno personalizado');
+    } else {
+      alert('Este color ya está agregado');
+    }
+    return;
+  }
+  
+  coloresSeleccionados.push(color);
+  actualizarColoresUI();
+  select.value = '';
+  customInput.value = '';
+}
+
+function actualizarColoresUI() {
+  const container = document.getElementById('colores-container');
+  container.innerHTML = coloresSeleccionados.map(color => `
+    <div class="color-tag">
+      <span>${color.charAt(0).toUpperCase() + color.slice(1)}</span>
+      <button type="button" onclick="removerColor('${color}')">&times;</button>
+    </div>
+  `).join('');
+}
+
+function removerColor(color) {
+  coloresSeleccionados = coloresSeleccionados.filter(c => c !== color);
+  actualizarColoresUI();
+}
+
+// Editar producto
+async function editarProducto(id) {
+  try {
+    const response = await apiFetch(`/api/productos/${id}`);
+    const producto = await response.json();
+    
+    document.getElementById('modal-producto-titulo').textContent = 'Editar Producto';
+    document.getElementById('producto-id').value = producto.id;
+    document.getElementById('producto-nombre').value = producto.nombre;
+    document.getElementById('producto-descripcion').value = producto.descripcion || '';
+    document.getElementById('producto-precio').value = producto.precio;
+    document.getElementById('producto-categoria').value = producto.categoria_id || '';
+    document.getElementById('producto-stock').value = producto.stock || 0;
+    document.getElementById('producto-destacado').checked = producto.destacado;
+    document.getElementById('producto-disponible').checked = producto.disponible;
+    
+    coloresSeleccionados = producto.colores || [];
+    actualizarColoresUI();
+    
+    // Mostrar imágenes existentes
+    const preview = document.getElementById('imagenes-preview');
+    preview.innerHTML = '';
+    if (producto.imagenesPorColor) {
+      Object.keys(producto.imagenesPorColor).forEach(color => {
+        producto.imagenesPorColor[color].forEach(img => {
+          const div = document.createElement('div');
+          div.className = 'imagen-preview';
+          div.innerHTML = `
+            <img src="../${img}" alt="${color}">
+            <span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: white; padding: 4px; font-size: 11px; text-align: center;">${color}</span>
+          `;
+          preview.appendChild(div);
+        });
+      });
+    }
+    
+    document.getElementById('modal-producto').classList.add('show');
+  } catch (error) {
+    alert('Error al cargar producto: ' + error.message);
+  }
+}
+
+// Eliminar producto
+async function eliminarProducto(id) {
+  if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+  
+  try {
+    const response = await apiFetch(`/api/productos/${id}`, { method: 'DELETE' });
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Producto eliminado exitosamente');
+      cargarProductos();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  } catch (error) {
+    alert('Error al eliminar producto: ' + error.message);
+  }
+}
+
+// Guardar producto
+document.getElementById('form-producto').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData();
+  const id = document.getElementById('producto-id').value;
+  formData.append('nombre', document.getElementById('producto-nombre').value);
+  formData.append('descripcion', document.getElementById('producto-descripcion').value);
+  formData.append('precio', document.getElementById('producto-precio').value);
+  formData.append('categoria_id', document.getElementById('producto-categoria').value);
+  formData.append('stock', document.getElementById('producto-stock').value);
+  formData.append('destacado', document.getElementById('producto-destacado').checked);
+  formData.append('disponible', document.getElementById('producto-disponible').checked);
+  formData.append('colores', JSON.stringify(coloresSeleccionados));
+  
+  const imagenes = document.getElementById('producto-imagenes').files;
+  for (let i = 0; i < imagenes.length; i++) {
+    formData.append('imagenes', imagenes[i]);
+  }
+  
+  try {
+    const url = id ? `/api/productos/${id}` : '/api/productos';
+    const method = id ? 'PUT' : 'POST';
+    
+    // Para FormData, construir URL completa si es necesario
+    let fullUrl = url;
+    if (window.API_BASE_URL && !url.startsWith('http')) {
+      fullUrl = `${window.API_BASE_URL}${url}`;
+    }
+    
+    const response = await fetch(fullUrl, {
+      method: method,
+      body: formData,
+      credentials: 'include'
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok) {
+      alert('Producto guardado exitosamente');
+      cerrarModalProducto();
+      cargarProductos();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  } catch (error) {
+    alert('Error al guardar producto: ' + error.message);
+  }
+});
+
+// Preview de imágenes
+document.getElementById('producto-imagenes').addEventListener('change', function(e) {
+  const preview = document.getElementById('imagenes-preview');
+  preview.innerHTML = '';
+  
+  Array.from(e.target.files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const div = document.createElement('div');
+      div.className = 'imagen-preview';
+      div.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+      preview.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// Toggle sidebar en móviles
+function toggleSidebar() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('show');
+  overlay.classList.toggle('show');
+}
+</script>
+</body>
+</html>
+
+

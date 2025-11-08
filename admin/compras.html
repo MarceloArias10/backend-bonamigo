@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Compras</title>
+<link rel="stylesheet" href="../css/styles.css">
+<link rel="stylesheet" href="../css/admin.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="../img/logo_bonamigo.png">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <!-- Overlay para móviles -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  
+  <aside class="admin-sidebar" id="admin-sidebar">
+    <div class="sidebar-header">
+      <img src="../img/logo.png" alt="Bonamigo" class="sidebar-logo">
+      <h2 id="sidebar-user-name">Cargando...</h2>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="dashboard.html" class="nav-item"><span class="nav-icon">📊</span><span>Dashboard</span></a>
+      <a href="productos.html" class="nav-item"><span class="nav-icon">📦</span><span>Productos</span></a>
+      <a href="categorias.html" class="nav-item"><span class="nav-icon">🏷️</span><span>Categorías</span></a>
+      <a href="ventas.html" class="nav-item"><span class="nav-icon">💰</span><span>Ventas</span></a>
+      <a href="compras.html" class="nav-item active"><span class="nav-icon">🛒</span><span>Compras</span></a>
+      <a href="estadisticas.html" class="nav-item"><span class="nav-icon">📈</span><span>Estadísticas</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+      <a href="../index.html" class="link-site">← Ver sitio</a>
+    </div>
+  </aside>
+  
+  <main class="admin-main">
+    <header class="admin-header">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <h1>Compras a Mayorista</h1>
+      <div class="header-user">
+        <span id="user-name">Admin</span>
+      </div>
+    </header>
+    
+    <div class="admin-content">
+      <div class="table-container">
+        <div class="table-header">
+          <h2>Registro de Compras</h2>
+          <button class="btn-primary" onclick="abrirModalCompra()">+ Nueva Compra</button>
+        </div>
+        
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fecha</th>
+              <th>Proveedor</th>
+              <th>Total</th>
+              <th>Notas</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="compras-table">
+            <tr><td colspan="6" style="text-align: center; padding: 40px;">Cargando...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Compra -->
+<div class="modal-overlay" id="modal-compra">
+  <div class="modal-box" style="max-width: 800px;">
+    <button class="modal-close" onclick="cerrarModalCompra()">&times;</button>
+    <h2>Nueva Compra</h2>
+    
+    <form id="form-compra">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="compra-fecha">Fecha</label>
+          <input type="datetime-local" id="compra-fecha" required>
+        </div>
+        <div class="form-group">
+          <label for="compra-proveedor">Proveedor</label>
+          <input type="text" id="compra-proveedor">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Productos</label>
+        <div id="compra-items"></div>
+        <button type="button" class="btn-secondary" onclick="agregarItemCompra()" style="margin-top: 10px;">+ Agregar Producto</button>
+      </div>
+      
+      <div class="form-group">
+        <label for="compra-notas">Notas</label>
+        <textarea id="compra-notas"></textarea>
+      </div>
+      
+      <div class="form-group">
+        <label>Total: $<span id="compra-total">0</span></label>
+      </div>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="submit" class="btn-primary">Guardar Compra</button>
+        <button type="button" class="btn-secondary" onclick="cerrarModalCompra()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script>
+let productos = [];
+let compraItems = [];
+
+// Función helper para API
+const apiFetch = window.apiRequest || fetch;
+
+// Verificar autenticación - siempre pedir login
+apiFetch('/api/session')
+  .then(res => res.json())
+  .then(data => {
+    if (!data.authenticated) {
+      apiFetch('/api/logout', { method: 'POST' }).finally(() => {
+        window.location.href = 'login.html';
+      });
+    } else {
+      document.getElementById('user-name').textContent = data.usuario;
+      const sidebarUserName = document.getElementById('sidebar-user-name');
+      if (sidebarUserName) {
+        sidebarUserName.textContent = data.usuario;
+      }
+      cargarProductos();
+      cargarCompras();
+    }
+  })
+  .catch(() => {
+    window.location.href = 'login.html';
+  });
+
+// Logout
+document.getElementById('logout-btn').addEventListener('click', async () => {
+  await apiFetch('/api/logout', { method: 'POST' });
+  window.location.href = 'login.html';
+});
+
+// Cargar productos
+async function cargarProductos() {
+  try {
+    const response = await apiFetch('/api/productos');
+    productos = await response.json();
+  } catch (error) {
+    console.error('Error al cargar productos:', error);
+  }
+}
+
+// Cargar compras
+async function cargarCompras() {
+  try {
+    const response = await apiFetch('/api/compras');
+    const compras = await response.json();
+    const tbody = document.getElementById('compras-table');
+    
+    if (compras.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No hay compras registradas</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = compras.map(c => {
+      const fecha = new Date(c.fecha);
+      return `
+        <tr>
+          <td>${c.id}</td>
+          <td>${fecha.toLocaleString('es-AR')}</td>
+          <td>${c.proveedor || '-'}</td>
+          <td>$${parseFloat(c.total).toLocaleString('es-AR')}</td>
+          <td>${c.notas || '-'}</td>
+          <td>-</td>
+        </tr>
+      `;
+    }).join('');
+  } catch (error) {
+    console.error('Error al cargar compras:', error);
+  }
+}
+
+// Abrir modal
+function abrirModalCompra() {
+  document.getElementById('compra-fecha').value = new Date().toISOString().slice(0, 16);
+  compraItems = [];
+  actualizarItemsCompra();
+  document.getElementById('modal-compra').classList.add('show');
+}
+
+// Cerrar modal
+function cerrarModalCompra() {
+  document.getElementById('modal-compra').classList.remove('show');
+}
+
+// Agregar item
+function agregarItemCompra() {
+  compraItems.push({ producto_id: '', color: '', cantidad: 1, precio_unitario: 0 });
+  actualizarItemsCompra();
+}
+
+// Actualizar items
+function actualizarItemsCompra() {
+  const container = document.getElementById('compra-items');
+  container.innerHTML = compraItems.map((item, index) => {
+    return `
+      <div style="border: 1px solid var(--ml-gray-light); padding: 15px; margin-bottom: 10px; border-radius: 8px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Producto</label>
+            <select onchange="actualizarItemCompra(${index}, 'producto_id', this.value)" required>
+              <option value="">Seleccionar...</option>
+              ${productos.map(p => `<option value="${p.id}" ${item.producto_id == p.id ? 'selected' : ''}>${p.nombre}</option>`).join('')}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cantidad</label>
+            <input type="number" value="${item.cantidad}" min="1" onchange="actualizarItemCompra(${index}, 'cantidad', this.value)" required>
+          </div>
+          <div class="form-group">
+            <label>Precio Unitario</label>
+            <input type="number" value="${item.precio_unitario}" step="0.01" onchange="actualizarItemCompra(${index}, 'precio_unitario', this.value)" required>
+          </div>
+          <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button type="button" class="btn-danger" onclick="removerItemCompra(${index})">Eliminar</button>
+          </div>
+        </div>
+        <div style="margin-top: 10px;">
+          <strong>Subtotal: $${(item.cantidad * item.precio_unitario).toLocaleString('es-AR')}</strong>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  calcularTotalCompra();
+}
+
+function actualizarItemCompra(index, campo, valor) {
+  compraItems[index][campo] = campo === 'cantidad' ? parseInt(valor) : parseFloat(valor);
+  actualizarItemsCompra();
+}
+
+function removerItemCompra(index) {
+  compraItems.splice(index, 1);
+  actualizarItemsCompra();
+}
+
+function calcularTotalCompra() {
+  const total = compraItems.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+  document.getElementById('compra-total').textContent = total.toLocaleString('es-AR');
+}
+
+// Guardar compra
+document.getElementById('form-compra').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  if (compraItems.length === 0) {
+    alert('Debes agregar al menos un producto');
+    return;
+  }
+  
+  const total = compraItems.reduce((sum, item) => sum + (item.cantidad * item.precio_unitario), 0);
+  const fecha = new Date(document.getElementById('compra-fecha').value).toISOString();
+  
+  const data = {
+    fecha: fecha,
+    proveedor: document.getElementById('compra-proveedor').value,
+    total: total,
+    notas: document.getElementById('compra-notas').value,
+    items: compraItems
+  };
+  
+  try {
+    const response = await apiFetch('/api/compras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok) {
+      alert('Compra registrada exitosamente');
+      cerrarModalCompra();
+      cargarCompras();
+    } else {
+      alert('Error: ' + result.error);
+    }
+  } catch (error) {
+    alert('Error al guardar compra: ' + error.message);
+  }
+});
+
+// Toggle sidebar en móviles
+function toggleSidebar() {
+  const sidebar = document.getElementById('admin-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  sidebar.classList.toggle('show');
+  overlay.classList.toggle('show');
+}
+</script>
+</body>
+</html>
+
+

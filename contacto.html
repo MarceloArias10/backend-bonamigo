@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonamigo - Contacto</title>
+<link rel="stylesheet" href="css/styles.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="img/logo_bonamigo.png">
+</head>
+<body class="fade-in">
+<header>
+  <div class="header-container">
+    <div class="logo">
+      <a href="#" id="logo-admin-link" onclick="return false;">
+        <img src="img/logo.png" alt="Bonamigo - Productos únicos y originales">
+      </a>
+    </div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="sobre.html">Sobre Nosotros</a></li>
+        <li><a href="contacto.html" class="active">Contacto</a></li>
+      </ul>
+    </nav>
+    <div class="header-right">
+      <div id="cart-icon" title="Ver carrito">
+        <span id="cart-count">0</span>
+      </div>
+      <div class="hamburger" id="hamburger-menu">
+        <div></div>
+        <div></div>
+        <div></div>
+      </div>
+    </div>
+  </div>
+</header>
+<section class="contacto">
+<h2>Contacto</h2>
+<form id="form-contacto">
+<input type="text" placeholder="Nombre" required>
+<input type="email" placeholder="Email" required>
+<textarea placeholder="Mensaje" required></textarea>
+<button type="submit" class="btn">Enviar</button>
+</form>
+</section>
+<!-- Botones flotantes de contacto -->
+<div class="contact-float">
+  <!-- WhatsApp -->
+  <a href="https://wa.me/5491123456789?text=Hola!%20Quiero%20hacer%20una%20consulta%20sobre%20Bonamigo." 
+     class="float-btn whatsapp" 
+     target="_blank" 
+     rel="noopener noreferrer">
+    <img src="img/logo-wp.png" alt="WhatsApp">
+    <span class="tooltip">Chateá con nosotros</span>
+  </a>
+
+  <!-- Instagram -->
+  <a href="https://www.instagram.com/bonamigo____/" 
+     class="float-btn instagram" 
+     target="_blank" 
+     rel="noopener noreferrer">
+    <img src="img/logo-instagram.png" alt="Instagram">
+    <span class="tooltip">Síguenos en Instagram</span>
+  </a>
+</div>
+<footer class="footer">
+  <p>&copy; <span id="year"></span> Bonamigo - Todos los derechos reservados.</p>
+</footer>
+<script src="js/config.js"></script>
+<script src="js/script.js"></script>
+</body>
+</html>
